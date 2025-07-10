@@ -1,0 +1,87 @@
+pyCV profile
+$$ PROFILE
+title:Profile
+profile:example
+
+$$ NAME
+title:Name
+name:name lastname
+
+$$ CONTACT
+title:Conctact
+email:email@email.com
+phone:+1234567890
+
+$$ TEXT
+title:summary
+type:Summary
+## SETS
+set:1
+{
+(summary option 1) bla bla bla bla bla bla bla bla bla.
+}
+set:2
+{
+(summary option 2) blo blo blo blo.
+}
+
+$$ EDUCATION
+title:Education
+## SETS
+set:1
+{
+bachelors in yapping:Jan 1990 - Jan 2025:school of yap
+}
+
+$$ LIST
+title:list section title
+type:bullets
+## SETS
+set:1
+{
+skill 11
+skill 12
+skill 13
+}
+set:2
+{
+skill 21
+skill 22
+skill 23
+skill 24
+}
+
+$$ WORK
+title:work section title
+## SETS
+set:1
+{
+project name 1:time:skill 1,skill 2,skill 3## tag 1,tag 2,for future use
+project name 2:time:skill 1,skill 2,skill 3## tag 1,tag 2,for future use
+}
+
+$$ LIST
+title:another type of list
+type:names
+## SETS
+set:1
+{
+skill 1
+skill 2
+skill 3
+}
+set:2
+{
+skill 1 name
+skill 2 name
+skill 3 name
+}
+
+$$ TEXT
+title:plain text section
+type:plain
+## SETS
+set:1
+{
+lorem ipsum
+}

@@ -7,6 +7,7 @@ from docx.shared import Inches
 import os
 from docx2pdf import convert as convert_to_pdf
 
+#========================================= DOCX edit =========================================
 #### Open new doc ###
 doc=Document()
 
@@ -91,7 +92,7 @@ def add_hyperlink(paragraph, text:str, url:str,f_size:int):
 
 ### write the name and contact info to doc ###
 ### contact_info={"email":"" , "phone":"", "linkedin": "", "webpage":"", "address":""} ###
-def contact_section(name:str, contact_info: dict={"email":"email" , "phone":"phone", "linkedin": "handle", "webpage":"url", "address":"address"}):
+def contact_section(name:str, contact_info: dict={"email":"" , "phone":"", "linkedin": "", "webpage":"", "address":""}):
     ### name ###
     capName=""
     for i in name.split():
@@ -143,7 +144,7 @@ def contact_section(name:str, contact_info: dict={"email":"email" , "phone":"pho
         run.add_break() 
 
 ### write Professional summary section
-def text_section(text:str, text_type=None, title=" "):
+def text_section(text:str, text_type=None, title=""):
     match text_type:
         case "summary":
             s=doc.add_paragraph()
@@ -169,24 +170,27 @@ def text_section(text:str, text_type=None, title=" "):
 ### adds the education section, can list various degrees or titles ###
 def education_section(education={"degree":["time","school"]}):
     t=doc.add_paragraph()
-    t.paragraph_format.space_after = Inches(0.1)
     run=t.add_run("Education")
     run.bold = True
     run.font.size = Pt(12)
     section_line(t)
     titles=list(education.keys())
     for title in titles:
-        e=doc.add_paragraph()
-        e.paragraph_format.space_after = Inches(0.1)
-        d=e.add_run(title.capitalize())
-        d.bold=True
-        time=e.add_run("\t("+education[title][0]+")")
-        time.add_break()
-        s=e.add_run(education[title][1].capitalize())  
-    s.add_break()
+        table = doc.add_table(rows=1, cols=2)
+        table.autofit = True
+        row = table.rows[0]
+        cell_title = row.cells[0]
+        cell_time = row.cells[1]
+        run_title = cell_title.paragraphs[0].add_run(title.capitalize())
+        run_title.bold = True
+        run_time = cell_time.paragraphs[0].add_run(education[title][0])
+        cell_time.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        s = doc.add_paragraph(education[title][1].capitalize())
+        s.paragraph_format.left_indent = Inches(0.25)
+    s.add_run().add_break()
 
 ### writes the skills section and all skills ###
-def list_section(items: list[str], title:str, list_type:str=None, item_names:list[str]=[]):
+def list_section(items: list[str], title:str, list_type:str=None, item_names:list[str]=[""]):
     match list_type:
         case "bullets":
             s=doc.add_paragraph()
@@ -250,25 +254,83 @@ def work_section(section_title="Work", projects={"name":["time",["skill 1", "ski
     section_line(s)
     names=list(projects.keys())
     for project in names:
-        p=doc.add_paragraph()
-        n=p.add_run(project.capitalize())
-        n.bold=True
-        t=p.add_run("\t ("+projects[project][0]+")")
+        table = doc.add_table(rows=1, cols=2)
+        table.autofit = True
+        row = table.rows[0]
+        cell_title = row.cells[0]
+        cell_time = row.cells[1]
+        p=cell_title.paragraphs[0].add_run(project.capitalize())
+        p.bold=True
+        t=cell_time.paragraphs[0].add_run(projects[project][0])
+        cell_time.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
         t.add_break
         for skill in projects[project][1]:
             s=doc.add_paragraph(skill.capitalize(), style="List Bullet")
             s.paragraph_format.left_indent = Inches(0.5)
     s.add_run().add_break()
 
+#========================================= Profiles =========================================
+def find_profiles()-> list:
+    profiles:list[str]=[]
+    with os.scandir() as entries:
+        for entry in entries:
+            if entry.is_file() and ".pyCV-profile" in entry.name:  # Check if it's a file
+                profiles.append(entry.name)
+    return profiles
+
+def read_profile(filename:str)-> dict:
+    # the dict of the entire return has the following structure {"title": [ type,["content line 1", "content line 2", ...],{"set 1": [1,2,3], "set 2":"bla bla bla", ...}] }
+    section_type:str=None
+    section_title:str=None
+    read_state:str=None
+    profile:dict={}
+    start_set:bool=False
+    set_num=1
+    with open(filename,"rt") as data_file:
+        for line in data_file:
+            if "$$" in line:
+                read_state="title"
+                section_type=line[3:-1]
+            elif "title:" in line and read_state=="title":
+                section_title=line[6:-1]
+                profile[section_title]=[section_type]
+                read_state="info"
+            elif line=="\n":
+                read_state=None
+            elif "##" in line:
+                read_state="sets"
+                profile[section_title].append({})
+            elif read_state=="sets":
+                if "set:" in line:
+                    set_num=line[-2]
+                    profile[section_title][-1][set_num]=[]
+                elif "{" in line:
+                    start_set=True
+                elif"}"in line:
+                    start_set=False
+                else:
+                    profile[section_title][-1][set_num].append(line[:-1])
+            elif read_state=="info" and "##"not in line:
+                if ("title" not in line) and ("## SETS" not in line):
+                    if len(profile[section_title])<2:
+                        profile[section_title].append({})
+                    data=line.split(":")
+                    profile[section_title][1][data[0]]=data[1][:-1]
+    return profile
+
 if __name__ == '__main__': ### for testing
-    doc_style()
-    contact_section("glerb sgurp",{"email":"email1111" , "phone":"+52 (123)45678", "linkedin": "cesarbermudez2003", "webpage":"webpage.com", "address":"address"})
-    text_section("summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary he.","summary")
-    education_section({"bachelors in gurb":["jan 2024 to jan 2021", "tredlurb school"],"masters in gub":["jan 2024 to jan 2021", "tredlurb school"]})
-    list_section(["a","b"],"skills","bullets")
-    list_section(["t","o"],"test","names",["k","p"])
-    list_section(["a","b","c"],"no type")
-    text_section("glibur glibur gliburgliburglibur glibur gliburgliburglibur",title="TEXT :)")
-    work_section()
-    filename=save_document("glorb","glorb")
+    # print("test start")
+    # doc_style()
+    # contact_section("glerb sgurp",{"email":"email1111" , "phone":"+52 (123)45678", "linkedin": "cesarbermudez2003", "webpage":"webpage.com", "address":"address"})
+    # text_section("summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary summary he.","summary")
+    # education_section({"bachelors in gurb":["jan 2024 to jan 2021", "tredlurb school"],"masters in gub":["jan 2024 to jan 2021", "tredlurb school"]})
+    # list_section(["a","b"],"skills","bullets")
+    # list_section(["t","o"],"test","names",["k","p"])
+    # list_section(["a","b","c"],"no type")
+    # text_section("glibur glibur gliburgliburglibur glibur gliburgliburglibur",title="TEXT :)")
+    # work_section()
+    # filename=save_document("glorb","glorb")
     #convert_to_pdf(filename)
+    profiles=find_profiles()
+    profile=read_profile(profiles[0])
+    print(profile)
