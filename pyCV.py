@@ -96,9 +96,9 @@ def contact_section(name:str, contact_info: dict={"email":"" , "phone":"", "link
     ### name ###
     capName=""
     for i in name.split():
-        capName=capName + i.capitalize()
+        capName=capName + i.capitalize() +" "
     n=doc.add_paragraph()
-    run=n.add_run(name.capitalize())
+    run=n.add_run(capName)
     run.bold = True
     run.font.size = Pt(12)
     n.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -125,22 +125,23 @@ def contact_section(name:str, contact_info: dict={"email":"" , "phone":"", "link
                 run=c1.add_run("   |   ")
                 run.font.size = Pt(12)
             c1.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        c2=doc.add_paragraph()
-        for i in range(3,key_num,1):
-            if ks[i]== "linkedin":
-                run=c2.add_run("Linkedin: ")
-                run.font.size = Pt(12)
-                add_hyperlink(c2,"/"+str(contact_info[ks[i]]),"https://www.linkedin.com/in/"+str(contact_info[ks[i]]),12)
-            elif ks[i]== "webpage":
-                add_hyperlink(c2,str(contact_info[ks[i]]),str(contact_info[ks[i]]),12)
-            else:
-                run=c2.add_run(str(contact_info[ks[i]]))
-                run.font.size = Pt(12)
-            if i<key_num-1:
-                run=c2.add_run("   |   ")
-                run.font.size = Pt(12)
-        c2.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        run=c2.add_run()
+        if key_num >3:
+            c2=doc.add_paragraph()
+            for i in range(3,key_num,1):
+                if ks[i]== "linkedin":
+                    run=c2.add_run("Linkedin: ")
+                    run.font.size = Pt(12)
+                    add_hyperlink(c2,"/"+str(contact_info[ks[i]]),"https://www.linkedin.com/in/"+str(contact_info[ks[i]]),12)
+                elif ks[i]== "webpage":
+                    add_hyperlink(c2,str(contact_info[ks[i]]),str(contact_info[ks[i]]),12)
+                else:
+                    run=c2.add_run(str(contact_info[ks[i]]))
+                    run.font.size = Pt(12)
+                if i<key_num-1:
+                    run=c2.add_run("   |   ")
+                    run.font.size = Pt(12)
+            c2.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            run=c2.add_run()
         run.add_break() 
 
 ### write Professional summary section
@@ -278,7 +279,7 @@ def find_profiles()-> list:
                 profiles.append(entry.name)
     return profiles
 
-def read_profile(filename:str)-> dict:
+def read_profile(filename:str)-> dict:#{"title": [ type,["content line 1", "content line 2", ...],{"set 1": [1,2,3], "set 2":"bla bla bla", ...}] }
     # the dict of the entire return has the following structure {"title": [ type,["content line 1", "content line 2", ...],{"set 1": [1,2,3], "set 2":"bla bla bla", ...}] }
     section_type:str=None
     section_title:str=None
@@ -318,6 +319,66 @@ def read_profile(filename:str)-> dict:
                     profile[section_title][1][data[0]]=data[1][:-1]
     return profile
 
+#========================================= Profile write to doc =========================================
+def write_doc(profile:dict, set_selections:dict, filename:str=""):
+    doc_style()
+    sections=list(profile.keys())
+    for section in sections:
+        section_type=profile[section][0]
+        match section_type:
+            case "NAME":
+                name=profile[section][1]["name"]
+            case "CONTACT":
+                contact_info=profile[section][1]
+                contact_section(name, contact_info)
+            case "TEXT":
+                text_type = profile[section][1]["type"]
+                selection=set_selections[section]
+                if text_type=='summary':
+                    text_section(profile[section][2][selection][0],"summary")
+                else:
+                    text_section(profile[section][2][selection][0],"plain",str(section))
+            case "WORK":
+                projects={}
+                selection=set_selections[section]
+                project_read=profile[section][1][selection]
+                for project in project_read:
+                    project_info= project.split(":")
+                    projects[project_info[0]]=[project_info[1],project_info[2].split(",")]
+                work_section(str(section),projects)
+            case "EDUCATION":
+                titles={}
+                title_read=profile[section][1]["1"]
+                for title in title_read:
+                    title_info=title.split(":")
+                    titles[title_info[0]]=[title_info[1],title_info[2]]
+                education_section(titles)
+            case "LIST":
+                list_type=profile[section][1]["type"]
+                selection=set_selections[section]
+                items=profile[section][2][selection]
+                print(list_type)
+                match list_type:
+                    case "bullets":
+                        list_section(items,str(section),"bullets")
+                    case "numbers":
+                        list_section(items,str(section),"numbers")
+                    case "names":
+                        item_list=[]
+                        item_name_list=[]
+                        for item in items:
+                            split_item= item.split(":")
+                            item_name_list.append(split_item[0])
+                            item_list.append(split_item[1])
+                        list_section(item_list,str(section),"names",item_name_list)
+                    case "plain":
+                        list_section(items,str(section))
+
+
+    file_saved=save_document(name,filename)
+    print(f"saved to {file_saved}")
+
+
 if __name__ == '__main__': ### for testing
     # print("test start")
     # doc_style()
@@ -332,5 +393,6 @@ if __name__ == '__main__': ### for testing
     # filename=save_document("glorb","glorb")
     #convert_to_pdf(filename)
     profiles=find_profiles()
-    profile=read_profile(profiles[0])
-    print(profile)
+    example_profile=read_profile(profiles[0])
+    selections={"summary":"2", "plain text section":"1", "work section title":"1","list section title":"1","another type of list":"1"}
+    write_doc(example_profile,selections,"test")

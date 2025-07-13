@@ -14,7 +14,7 @@ phone:+1234567890
 
 $$ TEXT
 title:summary
-type:Summary
+type:summary
 ## SETS
 set:1
 {
@@ -56,8 +56,8 @@ title:work section title
 ## SETS
 set:1
 {
-project name 1:time:skill 1,skill 2,skill 3## tag 1,tag 2,for future use
-project name 2:time:skill 1,skill 2,skill 3## tag 1,tag 2,for future use
+project name 1:time:skill 1,skill 2,skill 3:tag 1,tag 2,for future use
+project name 2:time:skill 1,skill 2,skill 3:tag 1,tag 2,for future use
 }
 
 $$ LIST
@@ -66,15 +66,9 @@ type:names
 ## SETS
 set:1
 {
-skill 1
-skill 2
-skill 3
-}
-set:2
-{
-skill 1 name
-skill 2 name
-skill 3 name
+skill name1:skill 1
+skill name2:skill 2
+skill name3:skill 3
 }
 
 $$ TEXT
