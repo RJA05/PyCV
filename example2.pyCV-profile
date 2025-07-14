@@ -1,7 +1,7 @@
 pyCV profile
 $$ PROFILE
 title:Profile
-profile:example
+profile:example2
 
 $$ NAME
 title:Name
@@ -79,3 +79,4 @@ set:1
 {
 lorem ipsum
 }
+
