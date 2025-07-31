@@ -2,13 +2,15 @@ from pyCVdocx import *
 from pyCVprofiles import *
 import os
 
-
+## this is a nightmare i should start over again or just use AI cause it is impossible to deal with this hahahahahaha
 def clear():
     command = 'cls' if os.name == 'nt' else 'clear'
     os.system(command)
 
 def new_profile():
-    ...
+    print("WIP")
+    input()
+
 def print_section(title, section):
     s_type=section[0]
     print(f"Editing: {title} ({s_type} section)")
@@ -41,6 +43,131 @@ def print_section(title, section):
             print("")
     print("======================================================================\n")
 
+def get_set(profile,sec_select, set_type):
+    sections=list(profile.keys())
+    title=sections[int(sec_select)]
+    match set_type:
+        case "WORK": #for education and project / work sections
+            projects=[]
+            add_stuff=input("Add another project? (y/n)")
+            while add_stuff == "y":
+                clear()
+                print_section(title,profile[sections[int(sec_select)]])
+                title=input("type the title or position: ")
+                time=input("type the length of the project/title (start date - end date or just a year): ")
+                skills=input(" type the skills you used sepparated by commas (skill 1,skill 2): ")
+                projects.append(f"{title}:{time}:{skills}")
+                add_stuff=input("Add another project? (y/n)")
+            profile[sections[int(sec_select)]][-1][str(1+len(profile[sections[int(sec_select)]][-1].keys()))]=projects
+
+        case "EDUCATION":
+            projects=[]
+            add_stuff=input("Add another title? (y/n)")
+            while add_stuff == "y":
+                clear()
+                print_section(title,profile[sections[int(sec_select)]])
+                title=input("type the title: ")
+                time=input("type the length time (start date - end date or just the year of completion): ")
+                skills=input("type the school or institution: ")
+                projects.append(f"{title}:{time}:{skills}")
+                add_stuff=input("Add another title? (y/n)")
+            profile[sections[int(sec_select)]][-1][str(1+len(profile[sections[int(sec_select)]][-1].keys()))]=projects
+
+        case "LIST":
+            if profile[sections[int(sec_select)]][1]["type"]=="names":
+                items=[]
+                item_names =[]
+                add_stuff=input("Add another item (y/n)")
+                while add_stuff == "y":
+                    clear()
+                    print_section(title,profile[sections[int(sec_select)]])
+                    item_name = input("type the name of the item: ")
+                    item=input("type the item: ")
+                    items.append(item)
+                    item_names.append(item_name)
+                    add_stuff=input("Add another item? (y/n)")
+                profile[sections[int(sec_select)]][-1][str(1+len(profile[sections[int(sec_select)]][-1].keys()))]=items
+                profile[sections[int(sec_select)]][-1][str(1+len(profile[sections[int(sec_select)]][-1].keys()))]=item_names
+            else:  
+                items=[]
+                add_stuff=input("Add another item (y/n)")
+                while add_stuff == "y":
+                    clear()
+                    print_section(title,profile[sections[int(sec_select)]])
+                    item=input("type the item: ")
+                    items.append(item)
+                    add_stuff=input("Add another item? (y/n)")
+                profile[sections[int(sec_select)]][-1][str(1+len(profile[sections[int(sec_select)]][-1].keys()))]=items
+
+        case "TEXT":
+            clear()
+            print_section(title,profile[sections[int(sec_select)]])
+            text=[input("type in the text for your section: ")]
+            profile[sections[int(sec_select)]][-1][str(1+len(profile[sections[int(sec_select)]][-1].keys()))]=text
+
+    return profile
+
+def del_set(profile,sec_select,set_to_delete:int):
+    sections=list(profile.keys())
+    title=sections[int(sec_select)]
+    sets=profile[sections[int(sec_select)]][-1]
+    sets.pop(str(set_to_delete))
+    new_sets={}
+    for i in range(len(sets.keys())):
+        new_sets[str(i+1)]=sets[list(sets.keys())[i]]
+    profile[sections[int(sec_select)]][-1]=new_sets
+    return profile
+
+def add_section(profile):
+    section_types=["TEXT","WORK","LIST"]
+    wrong_sec_type=True
+    while wrong_sec_type:
+        clear()
+        print("What type of section is your new section?\n0: Text\n1: Projects/Work\n2: List")
+        sec_type=input()
+        if sec_type in list(map(str, range(len(section_types)))):
+            wrong_sec_type=False
+    clear()
+    match section_types[int(sec_type)]:
+        case "TEXT":
+            print("=writing Text section=")
+            print("Choose a text section type\n0: plain (default)\n1: cv summary/objective")
+            text_section_type_selection=input()
+            if text_section_type_selection=="1":
+                text_section_type="summary"
+            else:
+                text_section_type="plain"
+            title=input("type the title of your section: ")
+            profile[title]=["TEXT",{'type': text_section_type},{}]
+            profile=get_set(profile,str(len(profile)-1),section_types[int(sec_type)])
+
+        case "WORK":
+            print("=writing Work/Projects section=")
+            title=input("type the title of your section: ")
+            profile[title]=["WORK",{}]
+            profile=get_set(profile,str(len(profile)-1),section_types[int(sec_type)])
+
+        case "LIST":
+            print("=writing List section=")
+            print("Choose a list section type\n0: bullets(default)\n1: numbers\n2: names\n3: plain")
+            list_type_selection=input()
+            if list_type_selection=="1":
+                list_type="numbers"
+            elif list_type_selection=="2":
+                list_type="names"
+            elif list_type_selection=="3":
+                list_type="plain"
+            else:
+                list_type="bullets"
+            title=input("type the title of your section: ")
+            profile[title]=["LIST",{"type":list_type},{}]
+            profile=get_set(profile,str(len(profile)-1),section_types[int(sec_type)])
+    
+    return profile
+
+def del_section(profile,section):
+    profile.pop(section)
+    return profile
 
 def print_profile(profile):
     sections=list(profile.keys())
@@ -158,6 +285,7 @@ def main():
             case "create new profile":
                 new_profile()
                 state="meh"
+            
             case "action menu":
 
                 clear()
@@ -211,6 +339,10 @@ def main():
                         state="edit section"
                     case "go back":
                         state="action menu"
+                    case "remove section":
+                        state="remove section menu"
+                    case "add section":
+                        state="add section menu"
                     case _:
                         state="edit profile"
 
@@ -226,9 +358,47 @@ def main():
                     clear()
                     title= sections[int(sec_select)]
                     print_section(title,profile[sections[int(sec_select)]])
-                    input()
+                    if profile[sections[int(sec_select)]][0]== "NAME" or profile[sections[int(sec_select)]][0]== "PROFILE" or profile[sections[int(sec_select)]][0]== "CONTACT":
+                        ###################TODO add way to edit these sections
+                        print("wip")
+                        input("press enter to go back")
+                    else:
+                        print("0: add set\n1: delete set\n2: go back")
+                        add_or_back=input()
+                        if add_or_back=="0":
+                            clear()
+                            print_section(title,profile[sections[int(sec_select)]])
+                            profile=get_set(profile,sec_select,profile[sections[int(sec_select)]][0])
+                        elif add_or_back=="1":
+                            clear()
+                            print_section(title,profile[sections[int(sec_select)]])
+                            set_select=input("Which set would you like to delete? ")
+                            if set_select in list(profile[sections[int(sec_select)]][-1].keys()):
+                                profile=del_set(profile,sec_select,int(set_select))
+
                 elif int(sec_select) == len(sections):
                     state="edit profile"
+            
+            case "add section menu":
+                profile=add_section(profile)
+                state="edit profile"
+
+            case "remove section menu":
+                sections=list(profile.keys())
+                delete_not_allowed=["0","1","2"]
+                clear()
+                print("Which section do you want to delete?\n")
+                print_sections(profile)
+                print(f"{len(sections)}: go back")
+                sec_select=input()
+                if sec_select in list(map(str,range(len(sections)))) and sec_select not in delete_not_allowed:
+                    section_to_delete=sections[int(sec_select)]
+                    if input(f"Are you sure you want to delete{section_to_delete}? (y/n)")=="y":
+                        profile=del_section(profile, section_to_delete)
+                        state="edit profile"
+                elif sec_select==str(len(sections)):
+                    state="edit profile"
+
             case _:
                 exit_app=True
 
