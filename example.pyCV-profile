@@ -79,3 +79,13 @@ set:1
 {
 lorem ipsum
 }
+
+$$ TEXT
+title:TESTING SAVE
+type:plain
+## SETS
+set:1
+{
+lalalalalalalalala lallalalalala allalalala ala ala alalalalala aalalalalala alalalal allal al lal lalalala alalal al alalal lallaalala
+}
+

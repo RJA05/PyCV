@@ -398,7 +398,26 @@ def main():
                         state="edit profile"
                 elif sec_select==str(len(sections)):
                     state="edit profile"
-
+            case "save profile":
+                clear()
+                print("=Profile saving menu=")
+                print("how would you like to save the current profile?\n0: save with current name\n1: save with new name\n2: go back")
+                how_to_save=input()
+                if how_to_save == "0":
+                    write_profile(profile)
+                    input(f"profile saved to {profile["Profile"][1]["profile"]} press enter to goo back")
+                    state="action menu"
+                elif how_to_save =="1":
+                    invalid_chars = '<>:"/\\|?*'
+                    new_profile_name=input("type the the name for your new profile: ")
+                    clean_profile_name=''.join(c for c in new_profile_name if c not in invalid_chars)
+                    profile["Profile"][1]["profile"]=clean_profile_name
+                    write_profile(profile)
+                    input(f"profile saved to {profile["Profile"][1]["profile"]} press enter to goo back")
+                    state="action menu"
+                elif how_to_save == "2":
+                    state="action menu"
+                
             case _:
                 exit_app=True
 
