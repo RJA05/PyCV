@@ -58,8 +58,8 @@ def get_set(profile,sec_select, set_type):
                 skills=input(" type the skills you used sepparated by commas (skill 1,skill 2): ")
                 projects.append(f"{title}:{time}:{skills}")
                 add_stuff=input("Add another project? (y/n)")
-            profile[sections[int(sec_select)]][-1][str(1+len(profile[sections[int(sec_select)]][-1].keys()))]=projects
-
+            profile=add_set(profile, sec_select, projects)
+            
         case "EDUCATION":
             projects=[]
             add_stuff=input("Add another title? (y/n)")
@@ -71,23 +71,23 @@ def get_set(profile,sec_select, set_type):
                 skills=input("type the school or institution: ")
                 projects.append(f"{title}:{time}:{skills}")
                 add_stuff=input("Add another title? (y/n)")
-            profile[sections[int(sec_select)]][-1][str(1+len(profile[sections[int(sec_select)]][-1].keys()))]=projects
+            profile=add_set(profile, sec_select, projects)
 
         case "LIST":
             if profile[sections[int(sec_select)]][1]["type"]=="names":
                 items=[]
-                item_names =[]
                 add_stuff=input("Add another item (y/n)")
                 while add_stuff == "y":
                     clear()
                     print_section(title,profile[sections[int(sec_select)]])
                     item_name = input("type the name of the item: ")
                     item=input("type the item: ")
-                    items.append(item)
-                    item_names.append(item_name)
+                    items.append(f"{item_name}:{item}")
+
                     add_stuff=input("Add another item? (y/n)")
-                profile[sections[int(sec_select)]][-1][str(1+len(profile[sections[int(sec_select)]][-1].keys()))]=items
-                profile[sections[int(sec_select)]][-1][str(1+len(profile[sections[int(sec_select)]][-1].keys()))]=item_names
+                profile=add_set(profile, sec_select, items)
+
+
             else:  
                 items=[]
                 add_stuff=input("Add another item (y/n)")
@@ -97,14 +97,20 @@ def get_set(profile,sec_select, set_type):
                     item=input("type the item: ")
                     items.append(item)
                     add_stuff=input("Add another item? (y/n)")
-                profile[sections[int(sec_select)]][-1][str(1+len(profile[sections[int(sec_select)]][-1].keys()))]=items
+                profile=add_set(profile, sec_select, items)
 
         case "TEXT":
             clear()
             print_section(title,profile[sections[int(sec_select)]])
             text=[input("type in the text for your section: ")]
-            profile[sections[int(sec_select)]][-1][str(1+len(profile[sections[int(sec_select)]][-1].keys()))]=text
+            profile=add_set(profile, sec_select, text)
 
+    return profile
+
+def add_set(profile,sec_select,new_set):
+    sections=list(profile.keys())
+    title=sections[int(sec_select)]
+    profile[sections[int(sec_select)]][-1][str(1+len(profile[sections[int(sec_select)]][-1].keys()))]=new_set
     return profile
 
 def del_set(profile,sec_select,set_to_delete:int):
@@ -215,6 +221,37 @@ def print_sections(profile):
     sections=list(profile.keys())
     for i in range(len(sections)):
         print(f"{i}: {sections[i]} ({profile[sections[i]][0]})")
+
+def handle_section_to_write(section, title,set_selections):
+    section_type=section[0]
+    match section_type:
+        case "TEXT":
+            text=query_text_sets(section,title)
+            print(text)
+            text_section(text,section[1],title)
+        case "WORK":
+            pass
+        case "EDUCATION":
+            pass
+        case "LIST":
+            pass
+
+def query_text_sets(section, title):
+    sets=section[-1]
+    clear()
+    print("=== CREATING CV ===")
+    print(f"== {section[0].capitalize()} section ==")
+    print(f"= Title: {title} =")
+    for text_set in sets:
+        print(f"Set {text_set}:")
+        print(section[-1][text_set])
+    selected_set=input("type in the number of the set you want to use: ")
+    if selected_set not in list(sets.keys()):
+        text=query_text_sets(section,title)
+    else:
+        text = str(section[-1][selected_set][0])
+
+    return text
 
 def main():
     exit_app=False
@@ -398,6 +435,7 @@ def main():
                         state="edit profile"
                 elif sec_select==str(len(sections)):
                     state="edit profile"
+            
             case "save profile":
                 clear()
                 print("=Profile saving menu=")
@@ -417,6 +455,31 @@ def main():
                     state="action menu"
                 elif how_to_save == "2":
                     state="action menu"
+                
+            case "create CV":
+                set_selections={}
+                selections={}
+                sections=list(profile.keys())[3:]
+                clear()
+                print("=== CREATING CV ===")
+                doc_style()
+
+                print("== Contact section ==")
+                contact_to_write=profile["Contact"][1]
+                # wtf_python=list(profile["Contact"][1].keys())
+                for i in list(contact_to_write.keys()):
+                    include_contact_item=input(f"do you want to include your {i}? y/n (no is default)")
+                    if include_contact_item != "y":
+                        contact_to_write.pop(i)
+                print("")
+                profile_with_selected_contact=profile
+                profile_with_selected_contact["Contact"]=contact_to_write
+
+                for section in sections:
+                    print(f"xd {section}")
+                    handle_section_to_write(profile[section],section,set_selections)
+                    print("")
+                    input()
                 
             case _:
                 exit_app=True
