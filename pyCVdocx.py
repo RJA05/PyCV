@@ -328,6 +328,7 @@ def write_doc(profile:dict, set_selections:dict, filename:str=""):
 
     file_saved=save_document(name,filename)
     print(f"saved to {file_saved}")
+    return file_saved
 
 
 # if __name__ == '__main__': ### for testing

@@ -13,7 +13,7 @@ def new_profile():
 
 def print_section(title, section):
     s_type=section[0]
-    print(f"Editing: {title} ({s_type} section)")
+    print(f"Working on: {title} ({s_type} section)")
     if s_type == "NAME" or s_type == "PROFILE":
         print(f"{section[1]}")
         print("")
@@ -224,34 +224,29 @@ def print_sections(profile):
 
 def handle_section_to_write(section, title,set_selections):
     section_type=section[0]
-    match section_type:
-        case "TEXT":
-            text=query_text_sets(section,title)
-            print(text)
-            text_section(text,section[1],title)
-        case "WORK":
-            pass
-        case "EDUCATION":
-            pass
-        case "LIST":
-            pass
+    selection=""
+    selection=query_set(section,title)
 
-def query_text_sets(section, title):
+    set_selections[title]=str(selection)
+    return set_selections
+
+def query_set(section, title):
     sets=section[-1]
     clear()
     print("=== CREATING CV ===")
-    print(f"== {section[0].capitalize()} section ==")
-    print(f"= Title: {title} =")
-    for text_set in sets:
-        print(f"Set {text_set}:")
-        print(section[-1][text_set])
+    print_section(title, section)
     selected_set=input("type in the number of the set you want to use: ")
     if selected_set not in list(sets.keys()):
-        text=query_text_sets(section,title)
+        selection=query_set(section,title)
     else:
-        text = str(section[-1][selected_set][0])
+        selection = selected_set
+        clear()
+        print(f"You selected set number {selection}\n {section[-1][selection]}")
+        confirm=input("press enter to confirm or enter NO to go back")
+        if confirm.lower() == "no":
+            selection=query_set(section, title)
+        return selection
 
-    return text
 
 def main():
     exit_app=False
@@ -473,13 +468,21 @@ def main():
                         contact_to_write.pop(i)
                 print("")
                 profile_with_selected_contact=profile
-                profile_with_selected_contact["Contact"]=contact_to_write
+                profile_with_selected_contact["Contact"]=["CONTACT",contact_to_write]
 
                 for section in sections:
-                    print(f"xd {section}")
                     handle_section_to_write(profile[section],section,set_selections)
                     print("")
-                    input()
+                
+                clear()
+                print("finished selecting sets")
+                filename=input("please enter the name for your file (leave empty for auto naming)")
+                saved_name=write_doc(profile_with_selected_contact,set_selections,filename)
+                pdf_query=input("do you wish to save a pdf copy as well? (y/n)")
+                if pdf_query.lower() != "n" or pdf_query.lower() != "no":
+                    convert_to_pdf(saved_name)
+                input("finished... press enter to continue")
+                state= "action menu"
                 
             case _:
                 exit_app=True
